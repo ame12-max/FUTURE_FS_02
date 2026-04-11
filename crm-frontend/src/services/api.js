@@ -22,6 +22,8 @@ export const authAPI = {
 export const leadsAPI = {
   getAll: (url = '/leads') => api.get(url),
   getOne: (id) => api.get(`/leads/${id}`),
+   getAnalytics: () => api.get('/leads/analytics'),
+
   create: (leadData) => api.post('/leads', leadData),
   updateStatus: (id, status) => api.put(`/leads/${id}/status`, { status }),
   delete: (id) => api.delete(`/leads/${id}`),

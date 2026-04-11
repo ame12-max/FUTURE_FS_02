@@ -1,35 +1,54 @@
 const db = require('../config/db');
+const { sendNewLeadNotification } = require('../utils/emailService'); // add this
+
 
 // Get all leads with optional filters
+// controllers/leadController.js
 exports.getAllLeads = async (req, res) => {
   try {
-    const { status, search, from, to } = req.query;
-    let query = 'SELECT * FROM leads WHERE 1=1';
+    const { status, search, from, to, page = 1, limit = 10 } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    
+    let whereClause = 'WHERE 1=1';
     const params = [];
 
     if (status) {
-      query += ' AND status = ?';
+      whereClause += ' AND status = ?';
       params.push(status);
     }
     if (search) {
-      query += ' AND (name LIKE ? OR email LIKE ? OR phone LIKE ?)';
+      whereClause += ' AND (name LIKE ? OR email LIKE ? OR phone LIKE ?)';
       const like = `%${search}%`;
       params.push(like, like, like);
     }
     if (from) {
-      query += ' AND created_at >= ?';
+      whereClause += ' AND created_at >= ?';
       params.push(from);
     }
     if (to) {
-      query += ' AND created_at <= ?';
+      whereClause += ' AND created_at <= ?';
       params.push(to);
     }
-    query += ' ORDER BY created_at DESC';
 
-    const [rows] = await db.query(query, params);
-    res.json(rows);
+    // Count total matching rows
+    const [countResult] = await db.query(`SELECT COUNT(*) as total FROM leads ${whereClause}`, params);
+    const total = countResult[0].total;
+
+    // Fetch paginated rows
+    const query = `SELECT * FROM leads ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`;
+    const [rows] = await db.query(query, [...params, parseInt(limit), offset]);
+
+    res.json({
+      data: rows,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
   } catch (err) {
-    console.error('Error in getAllLeads:', err);
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -59,13 +78,25 @@ exports.createLead = async (req, res) => {
       'INSERT INTO leads (name, email, phone, source, message) VALUES (?, ?, ?, ?, ?)',
       [name, email, phone || null, source || 'website', message || null]
     );
-    res.status(201).json({ message: 'Lead created', leadId: result.insertId });
+    
+    // Send email notification (don't await – fire and forget to avoid blocking response)
+   // After inserting into database, send email notification
+sendNewLeadNotification({ name, email, phone, source, message })
+  .then(result => {
+    if (result.success) {
+      console.log(`Email notification sent for lead ID ${result.insertId}`);
+    } else {
+      console.error(`Email failed for lead: ${result.error}`);
+    }
+  })
+  .catch(err => console.error('Unexpected email error:', err));
+
+    res.status(201).json({ id: result.insertId, name, email, phone, source, message });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
   }
 };
-
 // Update lead status
 exports.updateLeadStatus = async (req, res) => {
   const { status } = req.body;

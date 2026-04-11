@@ -1,11 +1,12 @@
 const express = require('express');
 const {
+  getAnalytics,
   getAllLeads,
   getLeadById,
   createLead,
   updateLeadStatus,
   deleteLead,
-  getAnalytics
+  
 } = require('../controllers/leadController');
 const authMiddleware = require('../middleware/authMiddleware');
 
@@ -16,9 +17,9 @@ router.post('/', createLead);
 
 // All routes below require admin authentication
 router.use(authMiddleware);
+router.get('/analytics', getAnalytics);
 router.get('/', getAllLeads);
 router.get('/:id', getLeadById);
-router.get('/analytics', getAnalytics);
 router.put('/:id/status', updateLeadStatus);
 router.delete('/:id', deleteLead);
 

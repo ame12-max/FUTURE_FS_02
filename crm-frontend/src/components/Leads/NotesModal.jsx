@@ -39,7 +39,7 @@ const NotesModal = ({ lead, onClose, onRefresh }) => {
       <div className="bg-white dark:bg-dark-200 rounded-xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
         <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
           <h3 className="text-xl font-bold">Notes for {lead.name}</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 cursor-pointer">
             <FiX size={24} />
           </button>
         </div>
@@ -72,7 +72,7 @@ const NotesModal = ({ lead, onClose, onRefresh }) => {
               onClick={addNote}
               className="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600"
             >
-              <FiPlus />
+              <FiPlus className='cursor-pointer' />
             </button>
           </div>
         </div>

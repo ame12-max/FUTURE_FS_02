@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { FiSearch, FiCalendar } from 'react-icons/fi';
+import { useState, useEffect, useRef } from 'react';
+import { FiSearch } from 'react-icons/fi';
 
 const dateRanges = [
   { label: 'Today', value: 'day' },
@@ -13,20 +13,27 @@ const LeadFilters = ({ filters, onFilterChange }) => {
   const [search, setSearch] = useState(filters.search || '');
   const [status, setStatus] = useState(filters.status || '');
   const [dateRange, setDateRange] = useState(filters.dateRange || 'all');
+  const debounceRef = useRef(null);
 
-  const handleSearch = () => {
-    onFilterChange({ ...filters, search, status, dateRange });
-  };
+  // Debounce search: wait 500ms after user stops typing
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      onFilterChange({ search, status, dateRange });
+    }, 500);
+    return () => clearTimeout(debounceRef.current);
+  }, [search]);
 
+  // Status and date range apply immediately (no debounce)
   const handleStatusChange = (e) => {
     const newStatus = e.target.value;
     setStatus(newStatus);
-    onFilterChange({ ...filters, search, status: newStatus, dateRange });
+    onFilterChange({ search, status: newStatus, dateRange });
   };
 
   const handleDateRange = (range) => {
     setDateRange(range);
-    onFilterChange({ ...filters, search, status, dateRange: range });
+    onFilterChange({ search, status, dateRange: range });
   };
 
   return (
@@ -34,20 +41,17 @@ const LeadFilters = ({ filters, onFilterChange }) => {
       <div className="flex flex-wrap gap-4 items-end">
         <div className="flex-1 min-w-[200px]">
           <label className="block text-sm font-medium mb-1">Search</label>
-          <div className="flex">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Name, email, phone..."
-              className="flex-1 px-3 py-2 border rounded-l-lg focus:ring-primary-500"
-            />
-            <button
-              onClick={handleSearch}
-              className="bg-primary-500 text-white px-4 py-2 rounded-r-lg hover:bg-primary-600"
-            >
-              <FiSearch />
-            </button>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Name, email, phone..."
+                className="w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-primary-500"
+              />
+            </div>
           </div>
         </div>
         <div>
@@ -70,7 +74,7 @@ const LeadFilters = ({ filters, onFilterChange }) => {
               <button
                 key={range.value}
                 onClick={() => handleDateRange(range.value)}
-                className={`px-3 py-1 rounded-full text-sm ${
+                className={`px-3 py-1 rounded-full text-sm transition ${
                   dateRange === range.value
                     ? 'bg-primary-500 text-white'
                     : 'bg-gray-200 dark:bg-dark-100 hover:bg-gray-300'

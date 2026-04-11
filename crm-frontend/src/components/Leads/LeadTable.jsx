@@ -69,14 +69,14 @@ const LeadTable = ({ leads, onStatusUpdate, onDelete, onRefresh }) => {
                     className="text-primary-600 hover:text-primary-800"
                     title="View Notes"
                   >
-                    <FiEye className="inline" />
+                    <FiEye className="inline cursor-pointer" />
                   </button>
                   <button
                     onClick={() => onDelete(lead.id)}
                     className="text-red-600 hover:text-red-800"
                     title="Delete Lead"
                   >
-                    <FiTrash2 className="inline" />
+                    <FiTrash2 className="inline cursor-pointer" />
                   </button>
                 </td>
               </tr>
