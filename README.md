@@ -21,7 +21,6 @@ A full‑stack **Client Lead Management System** built for the Future Interns Fu
 |-------------|
 | ![Notes](./screenshots/notes.png) |
 
-*(Place your actual screenshots inside the `screenshots/` folder with these filenames)*
 
 ---
 
